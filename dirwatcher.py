@@ -53,4 +53,12 @@ class Watcher:
     function. The callback function will be called
     for each monitored event.
     '''
-    pass
+    def __init__(self,
+        watch_dir:str='',
+        flags:EventFlag=EventFlag.IN_ALL_EVENTS
+    ):
+        self.watch_dir = watch_dir
+        self.event_flags = flags
+
+    def loop(self, callback:callable):
+        pass
