@@ -1,8 +1,10 @@
 from enum import IntFlag
+from inotify.adapters import _INOTIFY_EVENT, InotifyTree
 
 class EventFlag(IntFlag):
     """
-    Values from inotify.constants
+    Values from inotify.constants wrapped
+    in an IntFlag enum for convenience.
     """
     IN_CLOEXEC  = 0o2000000
     IN_NONBLOCK = 0o0004000
@@ -22,13 +24,13 @@ class EventFlag(IntFlag):
     IN_MOVE_SELF     = 0x00000800
 
     ## Helper events.
-    IN_CLOSE         = (IN_CLOSE_WRITE | IN_CLOSE_NOWRITE)
-    IN_MOVE          = (IN_MOVED_FROM | IN_MOVED_TO)
+    IN_CLOSE         = (CLOSE_WRITE | CLOSE_NOWRITE)
+    IN_MOVE          = (MOVED_FROM | MOVED_TO)
 
     ## All events which a program can wait on.
-    IN_ALL_EVENTS    = (IN_ACCESS | IN_MODIFY | IN_ATTRIB | IN_CLOSE_WRITE |
-                        IN_CLOSE_NOWRITE | IN_OPEN | IN_MOVED_FROM | IN_MOVED_TO | 
-                        IN_CREATE | IN_DELETE | IN_DELETE_SELF | IN_MOVE_SELF)
+    IN_ALL_EVENTS    = (ACCESS | MODIFY | ATTRIB | CLOSE_WRITE |
+                        CLOSE_NOWRITE | OPEN | MOVED_FROM | MOVED_TO | 
+                        CREATE | DELETE | DELETE_SELF | MOVE_SELF)
 
     ## Events sent by kernel.
     IN_UNMOUNT    = 0x00002000 # Backing fs was unmounted.
@@ -43,6 +45,26 @@ class EventFlag(IntFlag):
     IN_ONESHOT     = 0x80000000 # Only send event once.
 
 
+class EventInfo:
+    def __init__(self, ev:tuple):
+        in_ev_tuple:_INOTIFY_EVENT = ev[0]
+        self.watch_descriptor = in_ev_tuple.wd
+        self.mask = in_ev_tuple.mask
+        self.cookie = in_ev_tuple.cookie
+        self._length = in_ev_tuple.len
+        self.event_names = ev[1]
+        self.directory = ev[2]
+        if len(ev) > 3:
+            self.filename = ev[3]
+        else:
+            self.filename = 'NO FILE'
+
+    def __len__(self) -> int:
+        return self._length
+
+    def __str__(self) -> str:
+        return f"{self.event_names}: {self.directory} -> {self.filename}"
+
 class Watcher:
     '''
     A wrapper around INotify functionality.
@@ -51,7 +73,8 @@ class Watcher:
         * set of events to monitor for
     Then call its loop() method, passing a callback
     function. The callback function will be called
-    for each monitored event.
+    for each monitored event, and an EventInfo instance
+    will be passed to it.
     '''
     def __init__(self,
         watch_dir:str='',
@@ -61,4 +84,10 @@ class Watcher:
         self.event_flags = flags
 
     def loop(self, callback:callable):
-        pass
+        inot = InotifyTree(self.watch_dir, mask=self.event_flags)
+        for ev in inot.event_gen(yield_nones=False):
+            ev_info = EventInfo(ev)
+            callback(ev_info)
+
+
+        
