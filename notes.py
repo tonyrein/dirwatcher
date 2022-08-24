@@ -1,3 +1,4 @@
+"""
 Strategy for updating playlists:
 
     In PlaylistUpdater:
@@ -21,3 +22,5 @@ Strategy for updating playlists:
             parses event and if it's a relevant one:
                 find the directory it applies to
                 call update_single_playlist() for that directory
+
+"""
