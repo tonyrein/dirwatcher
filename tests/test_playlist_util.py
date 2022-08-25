@@ -16,8 +16,10 @@ def example_path() -> Path:
     for s in subdirs:
         psub = p / s
         psub.mkdir(parents=True, exist_ok=True)
-    for d in [ i for i in p.rglob('*') if i.is_dir() ]:
-        d.touch(d.name + '.mp3')
+    dirlist = [p] + [ i for i in p.rglob('*') if i.is_dir() ]
+    for d in dirlist:
+        pmp3 = d / f"{d.name}.mp3"
+        pmp3.touch()
     yield p
     shutil.rmtree(p)
 
@@ -44,7 +46,36 @@ def test_get_playlist_name_invalid_sub():
         playlist_util.get_playlist_name(p)
     assert f'{p} is not a valid podcast directory' in str(e_info.value)
 
-def test_get_directory_list():
-    n = example_path
-    pass
-    assert True
+def test_get_directory_list_flat(example_path):
+    dirlist = playlist_util.get_directory_list(example_path, descend=False)
+    dnames = [
+        '/tmp/Podcasts',
+        '/tmp/Podcasts/A',
+        '/tmp/Podcasts/B',
+        '/tmp/Podcasts/C'
+        ]
+    checklist = [ Path(s) for s in dnames ]
+    assert (
+        all( d in checklist for d in dirlist ) and 
+        len(dirlist) == len(checklist)
+    )
+ 
+def test_get_directory_list_recursive(example_path):
+    dirlist = playlist_util.get_directory_list(example_path, descend=True)
+    dnames = [
+        '/tmp/Podcasts',
+        '/tmp/Podcasts/A',
+        '/tmp/Podcasts/B',
+        '/tmp/Podcasts/C',
+        '/tmp/Podcasts/A/1',
+        '/tmp/Podcasts/A/2',
+        '/tmp/Podcasts/B/1',
+        '/tmp/Podcasts/B/2',
+        '/tmp/Podcasts/C/1',
+        '/tmp/Podcasts/C/2'  
+    ]
+    checklist = [ Path(s) for s in dnames ]
+    assert (
+        all( d in checklist for d in dirlist ) and 
+        len(dirlist) == len(checklist)
+    )
