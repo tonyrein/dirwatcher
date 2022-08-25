@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import List
 
 # constants
 PODCAST_TOPDIR = 'Podcasts'
@@ -31,3 +32,11 @@ def get_playlist_name(p:Path) -> str:
             raise ValueError(f'{p} is not a valid podcast directory')
         return f"{PODCAST_TOPDIR}-{last_part}.{PLAYLIST_EXT}"
 
+
+def get_directory_list(p:Path, descend:bool=False) -> List[Path]:
+    ret_list = [ p ]
+    if descend:
+        ret_list += [ i for i in p.rglob('*') if i.is_dir() ]
+    else:
+        ret_list += [ i for i in p.iterdir() if i.is_dir() ]
+    return ret_list
