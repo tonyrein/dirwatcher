@@ -7,7 +7,7 @@ import shutil
 
 
 @pytest.fixture
-def example_path() -> Path:
+def sample_path() -> Path:
     example_name = '/tmp/Podcasts'
     p = Path(example_name)
     if p.exists():
@@ -20,6 +20,9 @@ def example_path() -> Path:
     for d in dirlist:
         pmp3 = d / f"{d.name}.mp3"
         pmp3.touch()
+    # make an empty subdirectory:
+    pempty = p / 'D/1'
+    pempty.mkdir(parents=True, exist_ok=True)
     yield p
     shutil.rmtree(p)
 
@@ -46,13 +49,14 @@ def test_get_playlist_name_invalid_sub():
         playlist_util.get_playlist_name(p)
     assert f'{p} is not a valid podcast directory' in str(e_info.value)
 
-def test_get_directory_list_flat(example_path):
-    dirlist = playlist_util.get_directory_list(example_path, descend=False)
+def test_get_directory_list_flat(sample_path):
+    dirlist = playlist_util.get_directory_list(sample_path, descend=False)
     dnames = [
         '/tmp/Podcasts',
         '/tmp/Podcasts/A',
         '/tmp/Podcasts/B',
-        '/tmp/Podcasts/C'
+        '/tmp/Podcasts/C',
+        '/tmp/Podcasts/D',
         ]
     checklist = [ Path(s) for s in dnames ]
     assert (
@@ -60,8 +64,8 @@ def test_get_directory_list_flat(example_path):
         len(dirlist) == len(checklist)
     )
  
-def test_get_directory_list_recursive(example_path):
-    dirlist = playlist_util.get_directory_list(example_path, descend=True)
+def test_get_directory_list_recursive(sample_path):
+    dirlist = playlist_util.get_directory_list(sample_path, descend=True)
     dnames = [
         '/tmp/Podcasts',
         '/tmp/Podcasts/A',
@@ -72,10 +76,28 @@ def test_get_directory_list_recursive(example_path):
         '/tmp/Podcasts/B/1',
         '/tmp/Podcasts/B/2',
         '/tmp/Podcasts/C/1',
-        '/tmp/Podcasts/C/2'  
+        '/tmp/Podcasts/C/2',
+        '/tmp/Podcasts/D',
+        '/tmp/Podcasts/D/1'
     ]
     checklist = [ Path(s) for s in dnames ]
     assert (
         all( d in checklist for d in dirlist ) and 
         len(dirlist) == len(checklist)
     )
+
+def test_get_all_mp3_files(sample_path):
+    mp3list = playlist_util.get_file_list(p=sample_path, descend=False, glob_mask='*.[mM][pP]3')
+    fnames = [
+        '/tmp/Podcasts/A/1/1.mp3',
+        '/tmp/Podcasts/A/2/2.mp3',
+        '/tmp/Podcasts/A/A.mp3',
+        '/tmp/Podcasts/B/1/1.mp3',
+        '/tmp/Podcasts/B/2/2.mp3',
+        '/tmp/Podcasts/B/B.mp3',
+        '/tmp/Podcasts/C/1/1.mp3',
+        '/tmp/Podcasts/C/2/2.mp3',
+        '/tmp/Podcasts/C/C.mp3',
+        '/tmp/Podcasts/Podcasts.mp3',
+
+    ]

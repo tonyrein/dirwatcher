@@ -40,3 +40,9 @@ def get_directory_list(p:Path, descend:bool=False) -> List[Path]:
     else:
         ret_list += [ i for i in p.iterdir() if i.is_dir() ]
     return ret_list
+
+def get_file_list(p:Path, descend:bool=False, glob_mask:str='*') -> List[Path]:
+    if descend:
+        return [ f for f in p.rglob(glob_mask) ]
+    else:
+        return [ f for f in p.glob(glob_mask) ]
