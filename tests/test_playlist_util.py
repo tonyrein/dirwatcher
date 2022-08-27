@@ -8,6 +8,9 @@ import shutil
 
 @pytest.fixture
 def sample_path() -> Path:
+    '''
+    Make a temporary folder structure to use for testing
+    '''
     example_name = '/tmp/Podcasts'
     p = Path(example_name)
     if p.exists():
@@ -44,23 +47,28 @@ def test_lists_have_different_member_count():
 
 def test_get_playlist_name_valid_top():
     p = Path('/media/user/VOLUME/Podcasts')
-    assert playlist_util.get_playlist_name(p) == 'Podcasts.m3u'    
+    assert playlist_util.get_playlist_name(p) == playlist_util.playlist_path() / 'Podcasts.m3u'    
 
-def test_get_playlist_name_valid_sub():
+def test_get_playlist_name_valid_sub_first_level():
     p = Path('/media/user/VOLUME/Podcasts/Walkabout')
-    assert playlist_util.get_playlist_name(p) == 'Podcasts-Walkabout.m3u'
+    assert playlist_util.get_playlist_name(p) == playlist_util.playlist_path() / 'Podcasts-Walkabout.m3u'
+
+def test_get_playlist_name_valid_sub_second_level():
+    p = Path('/media/user/VOLUME/Podcasts/Walkabout/03')
+    assert playlist_util.get_playlist_name(p) == playlist_util.playlist_path() / 'Podcasts-Walkabout.m3u'
+
 
 def test_get_playlist_name_invalid_top():
     p = Path('/media/user/VOLUME/nosuchdirectory')
     with pytest.raises(ValueError) as e_info:
         playlist_util.get_playlist_name(p)
-    assert f'{p} is not a valid podcast directory' in str(e_info.value)
+    assert f"{p} is not a valid podcasts directory name" in str(e_info.value)
 
 def test_get_playlist_name_invalid_sub():
     p = Path('/media/user/VOLUME/nosuchdirectory/Walkabout')
     with pytest.raises(ValueError) as e_info:
         playlist_util.get_playlist_name(p)
-    assert f'{p} is not a valid podcast directory' in str(e_info.value)
+    assert f"{p} is not a valid podcasts directory name" in str(e_info.value)
 
 def test_get_directory_list_flat(sample_path):
     dirlist = playlist_util.get_directory_list(sample_path, descend=False)
@@ -159,4 +167,32 @@ def test_get_pod_directory_invalid_path():
     p = Path(s)
     with pytest.raises(ValueError) as e_info:
         playlist_util.get_pod_directory_path(p)
-    assert f"{p} does not contain 'Podcasts'" in str(e_info.value)
+    assert f"{p} is not a valid podcasts directory name" in str(e_info.value)
+
+def test_list_mp3_files_for_pod_directory_top(sample_path):
+    fname = '/tmp/Podcasts/Podcasts.mp3'
+    checklist = [ Path(fname) ]
+    mp3list = playlist_util.list_mp3_files_for_pod_directory(sample_path)
+    assert playlist_util.lists_have_same_members(checklist, mp3list)
+
+def test_list_mp3_files_for_pod_directory_sub_first_level(sample_path):
+    path_to_read = sample_path / 'C'
+    fnames = [
+        '/tmp/Podcasts/C/1/1.mp3',
+        '/tmp/Podcasts/C/2/2.mp3',
+        '/tmp/Podcasts/C/C.mp3',
+    ]
+    checklist = [ Path(s) for s in fnames ]
+    mp3list = playlist_util.list_mp3_files_for_pod_directory(path_to_read)
+    assert playlist_util.lists_have_same_members(checklist, mp3list)
+
+def test_list_mp3_files_for_pod_directory_sub_second_level(sample_path):
+    path_to_read = sample_path / 'C/2'
+    fnames = [
+        '/tmp/Podcasts/C/1/1.mp3',
+        '/tmp/Podcasts/C/2/2.mp3',
+        '/tmp/Podcasts/C/C.mp3',
+    ]
+    checklist = [ Path(s) for s in fnames ]
+    mp3list = playlist_util.list_mp3_files_for_pod_directory(path_to_read)
+    assert playlist_util.lists_have_same_members(checklist, mp3list)
