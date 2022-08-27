@@ -73,10 +73,6 @@ def test_get_directory_list_flat(sample_path):
         ]
     checklist = [ Path(s) for s in dnames ]
     assert playlist_util.lists_have_same_members(checklist, dirlist)
-    #assert (
-    #    all( d in checklist for d in dirlist ) and 
-    #    len(dirlist) == len(checklist)
-    #)
  
 def test_get_directory_list_recursive(sample_path):
     dirlist = playlist_util.get_directory_list(sample_path, descend=True)
@@ -96,11 +92,6 @@ def test_get_directory_list_recursive(sample_path):
     ]
     checklist = [ Path(s) for s in dnames ]
     assert playlist_util.lists_have_same_members(checklist, dirlist)
-    #assert (
-    #    all( d in checklist for d in dirlist ) and 
-    #    len(dirlist) == len(checklist)
-    #)
-
 
 def test_get_all_mp3_files(sample_path):
     mp3list = playlist_util.get_file_list(p=sample_path, descend=True, glob_mask='*.[mM][pP]3')
@@ -120,7 +111,7 @@ def test_get_all_mp3_files(sample_path):
     checklist = [ Path(s) for s in fnames ]
     assert playlist_util.lists_have_same_members(checklist, mp3list)
 
-def test_get_mp3_files_for_subdir(sample_path):
+def test_get_mp3_files_for_subdir_with_files(sample_path):
     subpath = sample_path / 'B'
     mp3list = playlist_util.get_file_list(p=subpath, descend=True, glob_mask='*.[mM][pP]3')
     fnames = [
@@ -130,3 +121,42 @@ def test_get_mp3_files_for_subdir(sample_path):
     ]
     checklist = [ Path(s) for s in fnames ]
     assert playlist_util.lists_have_same_members(checklist, mp3list)
+
+def test_get_mp3_files_for_empty_subdir(sample_path):
+    subpath = sample_path / 'D'
+    mp3list = playlist_util.get_file_list(p=subpath, descend=True, glob_mask='*.[mM][pP]3')
+    assert mp3list == []
+
+def test_get_mp3_files_toplevel(sample_path):
+    mp3list = playlist_util.get_file_list(p=sample_path, descend=False, glob_mask='*.[mM][pP]3')
+    fnames = [
+        '/tmp/Podcasts/Podcasts.mp3',
+    ]
+    checklist = [ Path(s) for s in fnames ]
+    assert playlist_util.lists_have_same_members(checklist, mp3list)
+
+def test_get_pod_directory_path_top():
+    s = '/tmp/Podcasts'
+    path_to_check = Path(s)
+    right_answer_path = Path(s)
+    assert playlist_util.get_pod_directory_path(path_to_check) == right_answer_path
+
+def test_get_pod_directory_path_sub_one_level():
+    s = '/tmp/Podcasts/03'
+    path_to_check = Path(s)
+    right_answer_path = Path(s)
+    assert playlist_util.get_pod_directory_path(path_to_check) == right_answer_path
+
+def test_get_pod_directory_path_sub_multiple_levels():
+    topsub = '/tmp/Podcasts/03'
+    lowersub = f'{topsub}/sub_d'
+    path_to_check = Path(lowersub)
+    right_answer_path = Path(topsub)
+    assert playlist_util.get_pod_directory_path(path_to_check) == right_answer_path
+
+def test_get_pod_directory_invalid_path():
+    s = '/tmp/nosuchdirectory/27/lower'
+    p = Path(s)
+    with pytest.raises(ValueError) as e_info:
+        playlist_util.get_pod_directory_path(p)
+    assert f"{p} does not contain 'Podcasts'" in str(e_info.value)
