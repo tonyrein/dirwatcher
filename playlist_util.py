@@ -47,6 +47,33 @@ def get_file_list(p:Path, descend:bool=False, glob_mask:str='*') -> List[Path]:
     else:
         return [ f for f in p.glob(glob_mask) ]
 
+def get_pod_directory_path(p:Path) -> Path:
+    '''
+    Given the path of a directory that's supposed to hold podcast files, find
+    the one we're supposed to make a playlist for. For example:
+        * If the path ends with 'Podcasts', return that.
+        * If there are elements after 'Podcasts', return the path of the first
+            element following 'Podcasts'.
+            That is, if the path is /mnt/run/Podcasts/01
+            return /mnt/run/Podcasts/01
+            If the path is /mnt/run/Podcasts/01/Sub_D
+            return /mnt/run/Podcasts/01
+        * If the path does not contain 'Podcasts', raise a ValueError
+    '''
+    parts = p.parts
+    try:
+        idx = parts.index('Podcasts')
+        if len(parts) >= idx + 2:
+            relevant_parts = parts[:idx + 2]
+        else:
+            relevant_parts = parts[:idx + 1]
+        if relevant_parts[0] == '/':
+            relevant_parts = relevant_parts[1:]
+        pstring = '/' + '/'.join(relevant_parts)
+        return Path(pstring)
+    except ValueError:
+        raise ValueError(f"{p} does not contain 'Podcasts'.")
+
 def lists_have_same_members(list1:List[Any], list2:List[Any]) -> bool:
     """
     Return True if both lists have the same members and the
