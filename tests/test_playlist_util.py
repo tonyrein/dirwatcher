@@ -26,12 +26,25 @@ def sample_path() -> Path:
     yield p
     shutil.rmtree(p)
 
+def test_lists_have_same_members():
+    list1 = [ 'a', 'b', 'c', 'd' ]
+    list2 = [ 'b', 'c', 'd', 'a' ]
+    assert playlist_util.lists_have_same_members(list1, list2)
 
+def test_lists_have_different_members():
+    list1 = [ 'a', 'b', 'c', 'd' ]
+    list2 = [ 'b', 'c', 'd', 'e' ]
+    assert not playlist_util.lists_have_same_members(list1, list2)
+
+
+def test_lists_have_different_member_count():
+    list1 = [ 'a', 'b', 'c', 'd' ]
+    list2 = [ 'b', 'c', 'd', 'a', 'a' ]
+    assert not playlist_util.lists_have_same_members(list1, list2)
 
 def test_get_playlist_name_valid_top():
     p = Path('/media/user/VOLUME/Podcasts')
-    assert playlist_util.get_playlist_name(p) == 'Podcasts.m3u'
-    
+    assert playlist_util.get_playlist_name(p) == 'Podcasts.m3u'    
 
 def test_get_playlist_name_valid_sub():
     p = Path('/media/user/VOLUME/Podcasts/Walkabout')
@@ -59,10 +72,11 @@ def test_get_directory_list_flat(sample_path):
         '/tmp/Podcasts/D',
         ]
     checklist = [ Path(s) for s in dnames ]
-    assert (
-        all( d in checklist for d in dirlist ) and 
-        len(dirlist) == len(checklist)
-    )
+    assert playlist_util.lists_have_same_members(checklist, dirlist)
+    #assert (
+    #    all( d in checklist for d in dirlist ) and 
+    #    len(dirlist) == len(checklist)
+    #)
  
 def test_get_directory_list_recursive(sample_path):
     dirlist = playlist_util.get_directory_list(sample_path, descend=True)
@@ -81,11 +95,13 @@ def test_get_directory_list_recursive(sample_path):
         '/tmp/Podcasts/D/1'
     ]
     checklist = [ Path(s) for s in dnames ]
-    assert (
-        all( d in checklist for d in dirlist ) and 
-        len(dirlist) == len(checklist)
-    )
+    assert playlist_util.lists_have_same_members(checklist, dirlist)
+    #assert (
+    #    all( d in checklist for d in dirlist ) and 
+    #    len(dirlist) == len(checklist)
+    #)
 
+'''
 def test_get_all_mp3_files(sample_path):
     mp3list = playlist_util.get_file_list(p=sample_path, descend=False, glob_mask='*.[mM][pP]3')
     fnames = [
@@ -101,3 +117,4 @@ def test_get_all_mp3_files(sample_path):
         '/tmp/Podcasts/Podcasts.mp3',
 
     ]
+'''

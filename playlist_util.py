@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import List
+from typing import List, Any
 
 # constants
 PODCAST_TOPDIR = 'Podcasts'
@@ -46,3 +46,12 @@ def get_file_list(p:Path, descend:bool=False, glob_mask:str='*') -> List[Path]:
         return [ f for f in p.rglob(glob_mask) ]
     else:
         return [ f for f in p.glob(glob_mask) ]
+
+def lists_have_same_members(list1:List[Any], list2:List[Any]) -> bool:
+    """
+    Return True if both lists have the same members and the
+    same count of each member, regardless of ordering; otherwise return False.
+    """
+    list1.sort()
+    list2.sort()
+    return list1 == list2
