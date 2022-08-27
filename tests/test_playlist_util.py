@@ -101,9 +101,9 @@ def test_get_directory_list_recursive(sample_path):
     #    len(dirlist) == len(checklist)
     #)
 
-'''
+
 def test_get_all_mp3_files(sample_path):
-    mp3list = playlist_util.get_file_list(p=sample_path, descend=False, glob_mask='*.[mM][pP]3')
+    mp3list = playlist_util.get_file_list(p=sample_path, descend=True, glob_mask='*.[mM][pP]3')
     fnames = [
         '/tmp/Podcasts/A/1/1.mp3',
         '/tmp/Podcasts/A/2/2.mp3',
@@ -117,4 +117,16 @@ def test_get_all_mp3_files(sample_path):
         '/tmp/Podcasts/Podcasts.mp3',
 
     ]
-'''
+    checklist = [ Path(s) for s in fnames ]
+    assert playlist_util.lists_have_same_members(checklist, mp3list)
+
+def test_get_mp3_files_for_subdir(sample_path):
+    subpath = sample_path / 'B'
+    mp3list = playlist_util.get_file_list(p=subpath, descend=True, glob_mask='*.[mM][pP]3')
+    fnames = [
+        '/tmp/Podcasts/B/1/1.mp3',
+        '/tmp/Podcasts/B/2/2.mp3',
+        '/tmp/Podcasts/B/B.mp3',
+    ]
+    checklist = [ Path(s) for s in fnames ]
+    assert playlist_util.lists_have_same_members(checklist, mp3list)
