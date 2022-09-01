@@ -57,9 +57,9 @@ def get_playlist_name(p:Path) -> Path:
     last_part = pod_path.parts[-1]
 
     if last_part == PODCAST_TOPDIR:
-        return playlist_path() / f"{PODCAST_TOPDIR}.{PLAYLIST_EXT}"
+        return pod_path / f"{PODCAST_TOPDIR}.{PLAYLIST_EXT}"
     else:
-        return playlist_path() / f"{PODCAST_TOPDIR}-{last_part}.{PLAYLIST_EXT}"
+        return pod_path / f"{PODCAST_TOPDIR}-{last_part}.{PLAYLIST_EXT}"
 
 def get_directory_list(p:Path, descend:bool=False) -> List[Path]:
     ret_list = [ p ]

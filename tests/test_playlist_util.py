@@ -47,16 +47,15 @@ def test_lists_have_different_member_count():
 
 def test_get_playlist_name_valid_top():
     p = Path('/media/user/VOLUME/Podcasts')
-    assert playlist_util.get_playlist_name(p) == playlist_util.playlist_path() / 'Podcasts.m3u'    
+    assert playlist_util.get_playlist_name(p) == p / 'Podcasts.m3u'    
 
 def test_get_playlist_name_valid_sub_first_level():
     p = Path('/media/user/VOLUME/Podcasts/Walkabout')
-    assert playlist_util.get_playlist_name(p) == playlist_util.playlist_path() / 'Podcasts-Walkabout.m3u'
+    assert playlist_util.get_playlist_name(p) == p / 'Podcasts-Walkabout.m3u'
 
 def test_get_playlist_name_valid_sub_second_level():
     p = Path('/media/user/VOLUME/Podcasts/Walkabout/03')
-    assert playlist_util.get_playlist_name(p) == playlist_util.playlist_path() / 'Podcasts-Walkabout.m3u'
-
+    assert playlist_util.get_playlist_name(p) == p.parent / 'Podcasts-Walkabout.m3u'
 
 def test_get_playlist_name_invalid_top():
     p = Path('/media/user/VOLUME/nosuchdirectory')
